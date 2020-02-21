@@ -46,15 +46,13 @@ module Spidr
         value.split(';').each do |param|
           param.strip!
 
-          name, value = param.split('=',2)
+          name, value = param.split('=', 2)
 
-          unless name =~ RESERVED_COOKIE_NAMES
-            params[name] = (value || '')
-          end
+          params[name] = (value || '') unless name =~ RESERVED_COOKIE_NAMES
         end
       end
 
-      return params
+      params
     end
   end
 end

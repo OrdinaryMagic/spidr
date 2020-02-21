@@ -166,10 +166,7 @@ module Spidr
     end
 
     def each_extracted_sitemap_links(node_name)
-      if plain_text?
-        return unzipped_body.each_line { |url| yield(url.strip) }
-      end
-
+      return unzipped_body.each_line { |url| yield(url.strip) } if plain_text?
       return unless sitemap_doc
 
       sitemap_doc.css("#{node_name} loc").each do |element|

@@ -537,9 +537,7 @@ module Spidr
                       (pattern == link) || (pattern == url)
                     end
 
-            if match
-              url_blocks.each { |url_block| url_block.call(url) }
-            end
+            url_blocks.each { |url_block| url_block.call(url) } if match
           end
         rescue Actions::Paused => action
           raise(action)
@@ -668,7 +666,7 @@ module Spidr
           end
 
           if (@max_depth.nil? || @max_depth > @levels[url])
-            enqueue(next_url,@levels[url] + 1)
+            enqueue(next_url, @levels[url] + 1)
           end
         end
       end

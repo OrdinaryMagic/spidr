@@ -4,6 +4,7 @@ require 'spidr/agent/filters'
 require 'spidr/agent/events'
 require 'spidr/agent/actions'
 require 'spidr/agent/robots'
+require 'spidr/agent/sitemap'
 require 'spidr/page'
 require 'spidr/session_cache'
 require 'spidr/cookie_jar'
@@ -174,19 +175,15 @@ module Spidr
     # @see #initialize_actions
     # @see #initialize_events
     #
-    def initialize(options={})
+    def initialize(options = {})
       @host_header  = options[:host_header]
       @host_headers = {}
 
-      if options[:host_headers]
-        @host_headers.merge!(options[:host_headers])
-      end
+      @host_headers.merge!(options[:host_headers]) if options[:host_headers]
 
       @default_headers = {}
 
-      if options[:default_headers]
-        @default_headers.merge!(options[:default_headers])
-      end
+      @default_headers.merge!(options[:default_headers]) if options[:default_headers]
 
       @user_agent = options.fetch(:user_agent,Spidr.user_agent)
       @referer    = options[:referer]
@@ -196,7 +193,7 @@ module Spidr
       @authorized = AuthStore.new
 
       @running  = false
-      @delay    = options.fetch(:delay,0)
+      @delay    = options.fetch(:delay, 0)
       @history  = Set[]
       @failures = Set[]
       @queue    = []
@@ -205,22 +202,16 @@ module Spidr
       @levels    = Hash.new(0)
       @max_depth = options[:max_depth]
 
-      if options[:queue]
-        self.queue = options[:queue]
-      end
-
-      if options[:history]
-        self.history = options[:history]
-      end
+      self.queue = options[:queue] if options[:queue]
+      self.history = options[:history] if options[:history]
 
       initialize_sanitizers(options)
       initialize_filters(options)
       initialize_actions(options)
       initialize_events(options)
 
-      if options.fetch(:robots,Spidr.robots?)
-        initialize_robots
-      end
+      initialize_robots if options.fetch(:robots, Spidr.robots?)
+      initialize_sitemap if options.fetch(:sitemap, false)
 
       yield self if block_given?
     end
@@ -350,9 +341,11 @@ module Spidr
     # @yieldparam [Page] page
     #   A page which has been visited.
     #
-    def start_at(url,&block)
+    def start_at(url, &block)
+      sitemap_urls(url).each { |u| enqueue(u) }
+
       enqueue(url)
-      return run(&block)
+      run(&block)
     end
 
     #
@@ -379,7 +372,7 @@ module Spidr
 
       @running = false
       @sessions.clear
-      return self
+      self
     end
 
     #
@@ -411,7 +404,7 @@ module Spidr
         @history << URI(url)
       end
 
-      return @history
+      @history
     end
 
     alias visited_urls history
@@ -468,7 +461,7 @@ module Spidr
         @failures << URI(url)
       end
 
-      return @failures
+      @failures
     end
 
     #
@@ -500,12 +493,8 @@ module Spidr
     #
     def queue=(new_queue)
       @queue.clear
-
-      new_queue.each do |url|
-        @queue << URI(url)
-      end
-
-      return @queue
+      new_queue.each { |url| @queue << URI(url) }
+      @queue
     end
 
     #

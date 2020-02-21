@@ -160,7 +160,7 @@ module Spidr
     private
 
     def sitemap_root_name
-      return unless doc.root
+      return unless doc&.root
 
       doc.root.name
     end

@@ -211,7 +211,7 @@ module Spidr
       initialize_events(options)
 
       initialize_robots if options.fetch(:robots, Spidr.robots?)
-      initialize_sitemap if options.fetch(:sitemap, false)
+      initialize_sitemap(options)
 
       yield self if block_given?
     end
@@ -575,8 +575,8 @@ module Spidr
     def get_page(url)
       url = URI(url)
 
-      prepare_request(url) do |session,path,headers|
-        new_page = Page.new(url,session.get(path,headers))
+      prepare_request(url) do |session, path, headers|
+        new_page = Page.new(url, session.get(path, headers))
 
         # save any new cookies
         @cookies.from_page(new_page)

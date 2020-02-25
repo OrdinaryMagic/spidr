@@ -149,6 +149,18 @@ describe Page do
   end
 
   describe "#gzip?" do
-    include_examples "Content-Type method", :gzip?, 'application/gzip'
+    include_context "example Page"
+
+    context 'when url includes .gz' do
+      let(:url) { 'http://example.com/sitemap.xml.gz' }
+
+      it { expect(subject.send(:gzip?)).to be(true) }
+    end
+
+    context 'when url not includes .gz' do
+      let(:url) { 'http://example.com/sitemap.xml' }
+
+      it { expect(subject.send(:gzip?)).to be(false) }
+    end
   end
 end

@@ -29,5 +29,5 @@ RSpec.shared_context "example Page" do
   let(:host) { 'example.com' }
   let(:url)  { URI::HTTP.build(host: host) }
 
-  subject { described_class.new(url,response) }
+  subject { described_class.new(url, response) }
 end

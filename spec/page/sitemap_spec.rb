@@ -49,7 +49,8 @@ describe Page do
     end
 
     context 'when the page contains gzipped sitemap urls' do
-      let(:content_type)  { 'application/gzip' }
+      let(:url) { 'http://example.com/sitemap.xml.gz' }
+      let(:content_type) { 'application/octet-stream' }
       let(:body) do
         io = StringIO.new.tap(&:binmode)
         Zlib::GzipWriter.new(io, nil, nil).tap do |gz|
@@ -145,8 +146,8 @@ describe Page do
     end
 
     context 'when the page contains gzipped sitemap urls' do
-      let(:content_type)  { 'application/gzip' }
-      let(:body) do
+      let(:content_type) { 'application/octet-stream' }
+      let!(:body) do
         io = StringIO.new.tap(&:binmode)
         Zlib::GzipWriter.new(io, nil, nil).tap do |gz|
           gz.write(sitemap_urls_xml)
@@ -157,6 +158,7 @@ describe Page do
       end
 
       it 'should return an Array of absolute URIs' do
+        allow_any_instance_of(Spidr::Page).to receive(:gzip?) { true }
         expect { |b| subject.each_sitemap_url(&b) }.to yield_successive_args(
           URI("http://#{host}/"),
           URI("http://#{host}/page")

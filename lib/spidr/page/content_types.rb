@@ -229,7 +229,7 @@ module Spidr
     #   Specifies whether the page is a Gzip archive.
     #
     def gzip?
-      is_content_type?('application/gzip')
+      !!(url.to_s =~ /.gz$/)
     end
   end
 end

@@ -343,7 +343,6 @@ module Spidr
     #
     def start_at(url, &block)
       sitemap_urls(url).each { |u| enqueue(u) }
-      run(&block)
 
       enqueue(url)
       run(&block)
@@ -364,7 +363,7 @@ module Spidr
 
       until (@queue.empty? || paused? || limit_reached?)
         begin
-          visit_page(dequeue,&block)
+          visit_page(dequeue, &block)
         rescue Actions::Paused
           return self
         rescue Actions::Action
@@ -657,7 +656,7 @@ module Spidr
         page.each_url do |next_url|
           begin
             @every_link_blocks.each do |link_block|
-              link_block.call(page.url,next_url)
+              link_block.call(page.url, next_url)
             end
           rescue Actions::Paused => action
             raise(action)
@@ -681,7 +680,7 @@ module Spidr
     #   the `queue` of the agent.
     #
     def to_hash
-      {history: @history, queue: @queue}
+      { history: @history, queue: @queue }
     end
 
     protected

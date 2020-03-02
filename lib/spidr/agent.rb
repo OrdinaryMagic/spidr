@@ -343,6 +343,7 @@ module Spidr
     #
     def start_at(url, &block)
       sitemap_urls(url).each { |u| enqueue(u) }
+      run(&block)
 
       enqueue(url)
       run(&block)
@@ -520,7 +521,7 @@ module Spidr
     # @return [Boolean]
     #   Specifies whether the URL was enqueued, or ignored.
     #
-    def enqueue(url,level=0)
+    def enqueue(url, level = 0)
       url = sanitize_url(url)
 
       if (!(queued?(url)) && visit?(url))

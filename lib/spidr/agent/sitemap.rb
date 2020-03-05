@@ -36,7 +36,7 @@ module Spidr
 
       if @sitemap == :robots
         urls = robots.other_values(base_url)['Sitemap']
-        return urls.flat_map { |u| parse_sitemap(url: u) } if urls.any?
+        return urls.flat_map { |u| parse_sitemap(url: u) } if urls && urls.any?
       end
 
       COMMON_SITEMAP_LOCATIONS.each do |path|

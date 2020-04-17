@@ -595,7 +595,7 @@ module Spidr
       when Net::HTTPRedirection then
         process_url(session, response['location'], headers, limit - 1)
       else
-        response.value
+        response
       end
     end
 

@@ -40,7 +40,7 @@ module Spidr
       end
 
       COMMON_SITEMAP_LOCATIONS.each do |path|
-        page = get_page(URI.join(base_url, path).to_s)
+        page = get_page(URI.join(base_url, path).to_s, true)
         return parse_sitemap(page: page) if page.code == 200
       end
 
@@ -59,7 +59,7 @@ module Spidr
     end
 
     def parse_sitemap(url: nil, page: nil)
-      page = get_page(url) if page.nil?
+      page = get_page(url, true) if page.nil?
       return [] unless page
 
       if page.sitemap_index?

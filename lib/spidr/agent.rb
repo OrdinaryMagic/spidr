@@ -570,17 +570,32 @@ module Spidr
     # @return [Page, nil]
     #   The page for the response, or `nil` if the request failed.
     #
-    def get_page(url)
+    def get_page(url, follow_redirect = false)
       url = URI(url)
 
       prepare_request(url) do |session, path, headers|
-        new_page = Page.new(url, session.get(path, headers))
+        response = follow_redirect ? process_url(session, path, headers, limit = 10) : session.get(path, headers)
+        new_page = Page.new(url, response)
 
         # save any new cookies
         @cookies.from_page(new_page)
 
         yield new_page if block_given?
         return new_page
+      end
+    end
+
+    def process_url(session, path, headers, limit = 10)
+      raise ArgumentError, 'too many HTTP redirects' if limit == 0
+
+      response = session.get(path, headers)
+      case response
+      when Net::HTTPSuccess then
+        response
+      when Net::HTTPRedirection then
+        process_url(session, response['location'], headers, limit - 1)
+      else
+        response.value
       end
     end
 

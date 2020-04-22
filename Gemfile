@@ -6,6 +6,7 @@ end
 
 gemspec
 
+gem 'concurrent-ruby', require: 'concurrent'
 gem 'robots', group: :robots
 
 group :development do
@@ -13,8 +14,8 @@ group :development do
   gem 'rubygems-tasks', '~> 0.2'
 
   gem 'rspec',    '~> 3.0'
-  gem 'webmock',  '~> 3.0'
   gem 'sinatra',  '~> 1.0'
+  gem 'webmock',  '~> 3.0'
 
   gem 'kramdown'
   gem 'yard',     '~> 0.9'

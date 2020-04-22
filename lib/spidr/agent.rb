@@ -14,6 +14,7 @@ require 'spidr/spidr'
 require 'openssl'
 require 'net/http'
 require 'set'
+require 'concurrent'
 
 module Spidr
   class Agent
@@ -93,6 +94,8 @@ module Spidr
     #
     # @return [Hash{URI::HTTP => Integer}]
     attr_reader :levels
+
+    attr_reader :pool_size
 
     #
     # Creates a new Agent object.
@@ -201,6 +204,8 @@ module Spidr
       @limit     = options[:limit]
       @levels    = Hash.new(0)
       @max_depth = options[:max_depth]
+      @mutex = Mutex.new
+      @pool_size = options.fetch(:delay, 8)
 
       self.queue = options[:queue] if options[:queue]
       self.history = options[:history] if options[:history]
@@ -361,13 +366,20 @@ module Spidr
     def run(&block)
       @running = true
 
-      until (@queue.empty? || paused? || limit_reached?)
-        begin
-          visit_page(dequeue, &block)
-        rescue Actions::Paused
-          return self
-        rescue Actions::Action
+      until @queue.empty? || paused? || limit_reached?
+        pool = ::Concurrent::FixedThreadPool.new(@pool_size)
+        @queue.each do |url|
+          pool.post do
+            begin
+              visit_page(url, &block)
+            rescue Actions::Paused
+              return self
+            rescue Actions::Action
+            end
+          end
         end
+        pool.shutdown
+        pool.wait_for_termination
       end
 
       @running = false

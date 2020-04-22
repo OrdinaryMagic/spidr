@@ -523,7 +523,7 @@ module Spidr
     def enqueue(url, level = 0)
       url = sanitize_url(url)
 
-      if (!(queued?(url)) && visit?(url))
+      if !queued?(url) && visit?(url)
         link = url.to_s
 
         begin
@@ -586,7 +586,7 @@ module Spidr
     end
 
     def process_url(session, path, headers, limit = 10)
-      raise ArgumentError, 'too many HTTP redirects' if limit == 0
+      raise ArgumentError, 'too many HTTP redirects' if limit.zero?
 
       response = session.get(path, headers)
       case response

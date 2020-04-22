@@ -205,7 +205,7 @@ module Spidr
       @levels    = Hash.new(0)
       @max_depth = options[:max_depth]
       @mutex = Mutex.new
-      @pool_size = options.fetch(:delay, 8)
+      @pool_size = options.fetch(:pool_size, 8)
 
       self.queue = options[:queue] if options[:queue]
       self.history = options[:history] if options[:history]

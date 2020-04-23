@@ -368,6 +368,7 @@ module Spidr
 
       until @queue.empty? || paused? || limit_reached?
         pool = ::Concurrent::FixedThreadPool.new(@pool_size)
+        @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
         urls = @queue.dup
         @queue = []
         urls.each do |url|
@@ -565,7 +566,7 @@ module Spidr
         return true
       end
 
-      return false
+      false
     end
 
     #
@@ -634,7 +635,7 @@ module Spidr
     #
     # @since 0.2.2
     #
-    def post_page(url,post_data='')
+    def post_page(url, post_data = '')
       url = URI(url)
 
       prepare_request(url) do |session,path,headers|
@@ -821,6 +822,12 @@ module Spidr
     #
     def limit_reached?
       @limit && @history.length >= @limit
+    end
+
+    def limit_balance
+      return unless @limit
+
+      @limit - @history.length
     end
 
     #

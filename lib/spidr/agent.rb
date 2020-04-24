@@ -535,9 +535,13 @@ module Spidr
     # @return [Boolean]
     #   Specifies whether the URL was enqueued, or ignored.
     #
-    def enqueue(url, level = 0)
-      url = sanitize_url(url)
+    def enqueue(item, level = 0)
+      if item.is_a?(Array)
+        @queue |= (item - @history.to_a)
+        return true
+      end
 
+      url = sanitize_url(item)
       if !queued?(url) && visit?(url)
         link = url.to_s
 
@@ -565,7 +569,6 @@ module Spidr
         @levels[url] = level
         return true
       end
-
       false
     end
 
@@ -680,22 +683,24 @@ module Spidr
         rescue Actions::Action
         end
 
-        page.each_url do |next_url|
-          begin
-            @every_link_blocks.each do |link_block|
-              link_block.call(page.url, next_url)
-            end
-          rescue Actions::Paused => action
-            raise(action)
-          rescue Actions::SkipLink
-            next
-          rescue Actions::Action
-          end
-
-          @mutex.synchronize do
-            enqueue(next_url, @levels[url] + 1) if (@max_depth.nil? || @max_depth > @levels[url])
-          end
-        end
+        # page.each_url do |next_url|
+        #   begin
+        #     @every_link_blocks.each do |link_block|
+        #       link_block.call(page.url, next_url)
+        #     end
+        #   rescue Actions::Paused => action
+        #     raise(action)
+        #   rescue Actions::SkipLink
+        #     next
+        #   rescue Actions::Action
+        #   end
+        #
+        #   @mutex.synchronize do
+        #     enqueue(next_url, @levels[url] + 1) if @max_depth.nil? || @max_depth > @levels[url]
+        #   end
+        # end
+        urls = page.urls.map { |u| sanitize_url(u) }.uniq(&:to_s).filter { |u| valid?(u) }
+        @mutex.synchronize { enqueue(urls) }
       end
     end
 

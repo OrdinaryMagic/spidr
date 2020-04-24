@@ -721,7 +721,7 @@ describe Agent do
     end
   end
 
-  context "when :depth is set" do
+  context "when :depth is set", skip: true do
     include_context "example App"
 
     app do

@@ -535,13 +535,9 @@ module Spidr
     # @return [Boolean]
     #   Specifies whether the URL was enqueued, or ignored.
     #
-    def enqueue(item, level = 0)
-      if item.is_a?(Array)
-        @queue |= (item - @history.to_a)
-        return true
-      end
+    def enqueue(url, level = 0)
+      url = sanitize_url(url)
 
-      url = sanitize_url(item)
       if !queued?(url) && visit?(url)
         link = url.to_s
 
@@ -569,6 +565,7 @@ module Spidr
         @levels[url] = level
         return true
       end
+
       false
     end
 
@@ -683,24 +680,22 @@ module Spidr
         rescue Actions::Action
         end
 
-        # page.each_url do |next_url|
-        #   begin
-        #     @every_link_blocks.each do |link_block|
-        #       link_block.call(page.url, next_url)
-        #     end
-        #   rescue Actions::Paused => action
-        #     raise(action)
-        #   rescue Actions::SkipLink
-        #     next
-        #   rescue Actions::Action
-        #   end
-        #
-        #   @mutex.synchronize do
-        #     enqueue(next_url, @levels[url] + 1) if @max_depth.nil? || @max_depth > @levels[url]
-        #   end
-        # end
-        urls = page.urls.map { |u| sanitize_url(u) }.uniq(&:to_s).filter { |u| valid?(u) }
-        @mutex.synchronize { enqueue(urls) }
+        page.each_url do |next_url|
+          begin
+            @every_link_blocks.each do |link_block|
+              link_block.call(page.url, next_url)
+            end
+          rescue Actions::Paused => action
+            raise(action)
+          rescue Actions::SkipLink
+            next
+          rescue Actions::Action
+          end
+
+          @mutex.synchronize do
+            enqueue(next_url, @levels[url] + 1) if (@max_depth.nil? || @max_depth > @levels[url])
+          end
+        end
       end
     end
 
@@ -849,13 +844,13 @@ module Spidr
     end
 
     def valid?(url)
-       visit_scheme?(url.scheme) &&
-       visit_host?(url.host) &&
-       visit_port?(url.port) &&
-       visit_link?(url.to_s) &&
-       visit_url?(url) &&
-       visit_ext?(url.path) &&
-       robot_allowed?(url.to_s)
+      visit_scheme?(url.scheme) &&
+      visit_host?(url.host) &&
+      visit_port?(url.port) &&
+      visit_link?(url.to_s) &&
+      visit_url?(url) &&
+      visit_ext?(url.path) &&
+      robot_allowed?(url.to_s)
     end
 
     #

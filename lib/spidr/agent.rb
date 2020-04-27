@@ -367,22 +367,12 @@ module Spidr
       @running = true
 
       until @queue.empty? || paused? || limit_reached?
-        pool = ::Concurrent::FixedThreadPool.new(@pool_size)
-        @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
-        urls = @queue.dup
-        @queue = []
-        urls.each do |url|
-          pool.post do
-            begin
-              visit_page(url, &block)
-            rescue Actions::Paused
-              return self
-            rescue Actions::Action
-            end
-          end
+        begin
+          visit_page(dequeue, &block)
+        rescue Actions::Paused
+          return self
+        rescue Actions::Action
         end
-        pool.shutdown
-        pool.wait_for_termination
       end
 
       @running = false
@@ -672,7 +662,7 @@ module Spidr
     def visit_page(url)
       url = sanitize_url(url)
       get_page(url) do |page|
-        @mutex.synchronize { @history << page.url }
+        @history << page.url
         begin
           @every_page_blocks.each { |page_block| page_block.call(page) }
           yield page if block_given?
@@ -683,24 +673,8 @@ module Spidr
         rescue Actions::Action
         end
 
-        # page.each_url do |next_url|
-        #   begin
-        #     @every_link_blocks.each do |link_block|
-        #       link_block.call(page.url, next_url)
-        #     end
-        #   rescue Actions::Paused => action
-        #     raise(action)
-        #   rescue Actions::SkipLink
-        #     next
-        #   rescue Actions::Action
-        #   end
-        #
-        #   @mutex.synchronize do
-        #     enqueue(next_url, @levels[url] + 1) if @max_depth.nil? || @max_depth > @levels[url]
-        #   end
-        # end
         urls = page.urls.map { |u| sanitize_url(u) }.uniq(&:to_s).filter { |u| valid?(u) }
-        @mutex.synchronize { enqueue(urls) }
+        enqueue(urls)
       end
     end
 

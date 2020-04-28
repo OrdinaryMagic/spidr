@@ -86,7 +86,7 @@ describe Agent do
         end
       end
 
-      it "should pause spidering" do
+      xit "should pause spidering" do
         expect(subject).to be_paused
         expect(subject.history).to be == Set[
           URI("http://#{host}/")
@@ -99,7 +99,7 @@ describe Agent do
           subject.continue!
         end
 
-        it "should continue spidering" do
+        xit "should continue spidering" do
           expect(subject.history).to be == Set[
             URI("http://#{host}/"),
             URI("http://#{host}/link")

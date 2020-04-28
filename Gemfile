@@ -18,5 +18,5 @@ group :development do
   gem 'webmock',  '~> 3.0'
 
   gem 'kramdown'
-  gem 'yard',     '~> 0.9'
+  gem 'yard', '~> 0.9'
 end

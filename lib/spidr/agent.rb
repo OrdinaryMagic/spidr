@@ -367,12 +367,19 @@ module Spidr
       @running = true
 
       until @queue.empty? || paused? || limit_reached?
-        begin
-          visit_page(dequeue, &block)
-        rescue Actions::Paused
-          return self
-        rescue Actions::Action
+        pool = ::Concurrent::FixedThreadPool.new(@pool_size)
+        @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
+        pages = []
+        @queue.dup.map { |url| sanitize_url(url) }.each do |url|
+          pool.post do
+            page = get_page(url)
+            @mutex.synchronize { pages << page }
+          end
         end
+        pool.shutdown
+        pool.wait_for_termination
+        @queue = []
+        pages.each { |p| visit_page(p, &block) }
       end
 
       @running = false
@@ -659,23 +666,20 @@ module Spidr
     #   The page that was visited. If `nil` is returned, either the request
     #   for the page failed, or the page was skipped.
     #
-    def visit_page(url)
-      url = sanitize_url(url)
-      get_page(url) do |page|
-        @history << page.url
-        begin
-          @every_page_blocks.each { |page_block| page_block.call(page) }
-          yield page if block_given?
-        rescue Actions::Paused => action
-          raise(action)
-        rescue Actions::SkipPage
-          return nil
-        rescue Actions::Action
-        end
-
-        urls = page.urls.map { |u| sanitize_url(u) }.uniq(&:to_s).filter { |u| valid?(u) }
-        enqueue(urls)
+    def visit_page(page)
+      @history << page.url
+      begin
+        @every_page_blocks.each { |page_block| page_block.call(page) }
+        yield page if block_given?
+      rescue Actions::Paused => action
+        raise(action)
+      rescue Actions::SkipPage
+        return nil
+      rescue Actions::Action
       end
+
+      urls = page.urls.map { |u| sanitize_url(u) }.uniq(&:to_s).filter { |u| valid?(u) }
+      enqueue(urls)
     end
 
     #

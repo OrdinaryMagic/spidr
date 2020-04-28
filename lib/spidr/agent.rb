@@ -370,7 +370,7 @@ module Spidr
         pool = ::Concurrent::FixedThreadPool.new(@pool_size)
         @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
         pages = []
-        @queue.dup.map { |url| sanitize_url(url) }.each do |url|
+        @queue.map { |url| sanitize_url(url.dup) }.each do |url|
           pool.post do
             page = get_page(url)
             @mutex.synchronize { pages << page }

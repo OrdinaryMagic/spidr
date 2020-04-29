@@ -7,7 +7,7 @@ module Spidr
     #   Response code from the page.
     #
     def code
-      @response.code.to_i
+      @curl.response_code.to_i
     end
 
     #
@@ -90,7 +90,7 @@ module Spidr
 
     #
     # Determines if the response code is `300`, `301`, `302`, `303`
-    # or `307`. Also checks for "soft" redirects added at the page 
+    # or `307`. Also checks for "soft" redirects added at the page
     # level by a meta refresh tag.
     #
     # @return [Boolean]

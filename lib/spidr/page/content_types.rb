@@ -7,7 +7,7 @@ module Spidr
     #   The Content-Type of the page.
     #
     def content_type
-      @response['Content-Type'] || ''
+      @headers['Content-Type'] || ''
     end
 
     #
@@ -19,7 +19,8 @@ module Spidr
     # @since 0.2.2
     #
     def content_types
-      @response.get_fields('content-type') || []
+      #TODO: rewrite
+      [@headers['Content-Type']] || []
     end
 
     #

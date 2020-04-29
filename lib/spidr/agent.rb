@@ -15,6 +15,7 @@ require 'openssl'
 require 'net/http'
 require 'set'
 require 'concurrent'
+require 'curb'
 
 module Spidr
   class Agent
@@ -347,7 +348,7 @@ module Spidr
     #   A page which has been visited.
     #
     def start_at(url, &block)
-      sitemap_urls(url).each { |u| enqueue(u) }
+      # sitemap_urls(url).each { |u| enqueue(u) }
 
       enqueue(url)
       run(&block)
@@ -370,7 +371,7 @@ module Spidr
         pool = ::Concurrent::FixedThreadPool.new(@pool_size)
         @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
         pages = []
-        @queue.map { |url| sanitize_url(url.dup) }.each do |url|
+        @queue.map { |url| sanitize_url(url) }.each do |url|
           pool.post do
             page = get_page(url)
             @mutex.synchronize { pages << page }
@@ -586,31 +587,45 @@ module Spidr
     #   The page for the response, or `nil` if the request failed.
     #
     def get_page(url, follow_redirect = false)
-      url = URI(url)
+      # url = URI(url)
+      curl = init_curl(url.to_s)
+      curl.perform
+      new_page = Page.new(url, curl)
+      yield new_page if block_given?
+      new_page
 
-      prepare_request(url) do |session, path, headers|
-        response = follow_redirect ? process_url(session, path, headers, limit = 10) : session.get(path, headers)
-        new_page = Page.new(url, response)
-
-        # save any new cookies
-        @cookies.from_page(new_page)
-
-        yield new_page if block_given?
-        return new_page
-      end
+      # prepare_request(url) do |session, path, headers|
+      #   response = follow_redirect ? process_url(session, path, headers, limit = 10) : session.get(path, headers)
+      #   new_page = Page.new(url, response)
+      #
+      #   # save any new cookies
+      #   @cookies.from_page(new_page)
+      #
+      #   yield new_page if block_given?
+      #   return new_page
+      # end
     end
-
-    def process_url(session, path, headers, limit = 10)
-      raise ArgumentError, 'too many HTTP redirects' if limit.zero?
-
-      response = session.get(path, headers)
-      case response
-      when Net::HTTPSuccess then
-        response
-      when Net::HTTPRedirection then
-        process_url(session, response['location'], headers, limit - 1)
-      else
-        response
+    #
+    # def process_url(session, path, headers, limit = 10)
+    #   raise ArgumentError, 'too many HTTP redirects' if limit.zero?
+    #
+    #   response = session.get(path, headers)
+    #   case response
+    #   when Net::HTTPSuccess then
+    #     response
+    #   when Net::HTTPRedirection then
+    #     process_url(session, response['location'], headers, limit - 1)
+    #   else
+    #     response
+    #   end
+    # end
+    #
+    def init_curl(url)
+      Curl::Easy.new do |c|
+        c.url = url
+        c.follow_location = true
+        # c.proxy_url = proxy_url if proxy_url.present?
+        c.headers['User-Agent'] = @user_agent if @user_agent
       end
     end
 
@@ -777,7 +792,7 @@ module Spidr
              IOError,
              OpenSSL::SSL::SSLError,
              Net::HTTPBadResponse,
-             Zlib::Error
+             Zlib::Error => error
 
         @sessions.kill!(url)
 

@@ -1,3 +1,5 @@
+require "http/parser"
+
 module Spidr
   #
   # Represents a requested page from a website.
@@ -8,7 +10,7 @@ module Spidr
     attr_reader :url
 
     # HTTP Response
-    attr_reader :response
+    attr_reader :curl
 
     # Headers returned with the body
     attr_reader :headers
@@ -22,11 +24,11 @@ module Spidr
     # @param [Net::HTTPResponse] response
     #   The response from the request for the page.
     #
-    def initialize(url,response)
-      @url      = url
-      @response = response
-      @headers  = response.to_hash
-      @doc      = nil
+    def initialize(url, curl)
+      @url = url
+      @curl = curl
+      @headers = populate_headers(curl)
+      @doc = nil
     end
 
     #
@@ -36,7 +38,7 @@ module Spidr
     #   The body of the response.
     #
     def body
-      (response.body || '')
+      (curl.body_str || '')
     end
 
     alias to_s body
@@ -114,6 +116,17 @@ module Spidr
     alias / search
     alias % at
 
+    # TODO: replcae
+    def populate_headers(curl)
+      http_parser.reset!
+      http_parser << curl.header_str
+      http_parser.headers
+    end
+
+    def http_parser
+      @http_parser ||= Http::Parser.new
+    end
+
     protected
 
     #
@@ -135,14 +148,15 @@ module Spidr
       if (arguments.empty? && block.nil?)
         header_name = name.to_s.tr('_','-')
 
-        if @response.key?(header_name)
-          return @response[header_name]
-        end
+        # TODO: remove
+        # if @response.key?(header_name)
+        #   return @response[header_name]
+        # end
       end
 
       return super(name,*arguments,&block)
     end
-  
+
   end
 end
 

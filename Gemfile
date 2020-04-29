@@ -7,6 +7,8 @@ end
 gemspec
 
 gem 'concurrent-ruby', require: 'concurrent'
+gem 'curb'
+gem 'http_parser.rb', '~> 0.6.0'
 gem 'robots', group: :robots
 
 group :development do

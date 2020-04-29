@@ -105,7 +105,8 @@ module Spidr
     def each_redirect(&block)
       return enum_for(__method__) unless block
 
-      if (locations = @response.get_fields('Location'))
+      # TODO: get_fields as Net::HTTP
+      if (locations = @headers['Location'])
         # Location headers override any meta-refresh redirects in the HTML
         locations.each(&block)
       else

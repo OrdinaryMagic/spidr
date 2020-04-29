@@ -104,6 +104,7 @@ module Spidr
 
         if url.scheme == 'https'
           session.use_ssl     = true
+          session.ssl_version = 'TLSv1'
           session.verify_mode = OpenSSL::SSL::VERIFY_NONE
           session.ssl_timeout = @ssl_timeout
           session.start
@@ -133,7 +134,7 @@ module Spidr
       key = key_for(url)
 
       if (sess = @sessions[key])
-        begin 
+        begin
           sess.finish
         rescue IOError
         end

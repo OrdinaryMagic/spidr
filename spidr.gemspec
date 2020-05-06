@@ -51,6 +51,7 @@ Gem::Specification.new do |gem|
       gem.add_dependency(name,split[versions])
     end
   end
+  gem.add_dependency('http_parser.rb', '~> 0.6.0')
 
   if gemspec['development_dependencies']
     gemspec['development_dependencies'].each do |name,versions|

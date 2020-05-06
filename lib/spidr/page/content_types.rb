@@ -20,7 +20,7 @@ module Spidr
     #
     def content_types
       #TODO: rewrite
-      [@headers['Content-Type']] || []
+      [@headers['Content-Type']].reject(&:blank?) || []
     end
 
     #
@@ -69,15 +69,15 @@ module Spidr
       if type.include?('/')
         # otherwise only match the first param
         content_types.any? do |value|
-          value = value.split(';',2).first
+          value = value.split(';', 2).first
 
           value == type
         end
       else
         # otherwise only match the sub-type
         content_types.any? do |value|
-          value = value.split(';',2).first
-          value = value.split('/',2).last
+          value = value.split(';', 2).first
+          value = value.split('/', 2).last
 
           value == type
         end

@@ -119,7 +119,8 @@ module Spidr
     # TODO: replcae
     def populate_headers(curl)
       http_parser.reset!
-      http_parser << curl.header_str
+      header_str = curl.header_str
+      http_parser << (curl.follow_location? ? header_str.split("\n\r\n").last : header_str)
       http_parser.headers
     end
 

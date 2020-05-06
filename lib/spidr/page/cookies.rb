@@ -28,7 +28,8 @@ module Spidr
     # @since 0.2.2
     #
     def cookies
-      (@headers['Set-Cookie'] || [])
+      # TODO: get_fields
+      [@headers['Set-Cookie']].reject(&:blank?) || []
     end
 
     #

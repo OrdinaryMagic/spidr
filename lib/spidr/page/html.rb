@@ -108,6 +108,7 @@ module Spidr
       # TODO: get_fields as Net::HTTP
       if (locations = @headers['Location'])
         # Location headers override any meta-refresh redirects in the HTML
+        locations = locations.is_a?(Array) ? locations : [locations]
         locations.each(&block)
       else
         # check page-level meta redirects if there isn't a location header
@@ -188,22 +189,6 @@ module Spidr
       if (html? && doc)
         doc.search('//a[@href]').each do |a|
           filter.call(a.get_attribute('href'))
-        end
-
-        doc.search('//frame[@src]').each do |iframe|
-          filter.call(iframe.get_attribute('src'))
-        end
-
-        doc.search('//iframe[@src]').each do |iframe|
-          filter.call(iframe.get_attribute('src'))
-        end
-
-        doc.search('//link[@href]').each do |link|
-          filter.call(link.get_attribute('href'))
-        end
-
-        doc.search('//script[@src]').each do |script|
-          filter.call(script.get_attribute('src'))
         end
       end
     end

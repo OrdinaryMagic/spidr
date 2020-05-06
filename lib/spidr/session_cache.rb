@@ -95,7 +95,7 @@ module Spidr
           @proxy.port,
           @proxy.user,
           @proxy.password
-        ).new(url.host,url.port)
+        ).new(url.host, url.port)
 
         session.open_timeout       = @open_timeout       if @open_timeout
         session.read_timeout       = @read_timeout       if @read_timeout
@@ -104,7 +104,6 @@ module Spidr
 
         if url.scheme == 'https'
           session.use_ssl     = true
-          session.ssl_version = 'TLSv1'
           session.verify_mode = OpenSSL::SSL::VERIFY_NONE
           session.ssl_timeout = @ssl_timeout
           session.start

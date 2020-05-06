@@ -241,8 +241,8 @@ module Spidr
     # @see #initialize
     # @see #start_at
     #
-    def self.start_at(url,options={},&block)
-      agent = new(options,&block)
+    def self.start_at(url, options = {}, &block)
+      agent = new(options, &block)
       agent.start_at(url)
     end
 
@@ -348,7 +348,7 @@ module Spidr
     #   A page which has been visited.
     #
     def start_at(url, &block)
-      # sitemap_urls(url).each { |u| enqueue(u) }
+      sitemap_urls(url).each { |u| enqueue(u) }
 
       enqueue(url)
       run(&block)
@@ -588,8 +588,9 @@ module Spidr
     #
     def get_page(url, follow_redirect = false)
       # url = URI(url)
-      curl = init_curl(url.to_s)
+      curl = init_curl(url.to_s, follow_redirect)
       curl.perform
+      url = URI.parse(curl.last_effective_url) if follow_redirect
       new_page = Page.new(url, curl)
       yield new_page if block_given?
       new_page
@@ -620,10 +621,10 @@ module Spidr
     #   end
     # end
     #
-    def init_curl(url)
+    def init_curl(url, follow_location = false)
       Curl::Easy.new do |c|
         c.url = url
-        c.follow_location = true
+        c.follow_location = follow_location
         # c.proxy_url = proxy_url if proxy_url.present?
         c.headers['User-Agent'] = @user_agent if @user_agent
       end

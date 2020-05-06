@@ -371,7 +371,7 @@ module Spidr
         pool = ::Concurrent::FixedThreadPool.new(@pool_size)
         @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
         pages = []
-        @queue.map { |url| sanitize_url(url) }.each do |url|
+        @queue.each do |url|
           pool.post do
             page = get_page(url)
             @mutex.synchronize { pages << page }
@@ -379,8 +379,10 @@ module Spidr
         end
         pool.shutdown
         pool.wait_for_termination
-        @queue = []
-        pages.each { |p| visit_page(p, &block) }
+        pages.each do |p|
+          @queue = @queue.delete_if { |url| url.to_s == p.url.to_s }
+          visit_page(p, &block)
+        end
       end
 
       @running = false

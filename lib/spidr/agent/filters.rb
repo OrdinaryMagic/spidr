@@ -170,7 +170,7 @@ module Spidr
     #
     # @yieldparam [String] link
     #   A link to accept or reject.
-    # 
+    #
     # @since 0.2.4
     #
     def visit_links_like(pattern=nil,&block)
@@ -238,7 +238,7 @@ module Spidr
     #
     # @yieldparam [URI::HTTP, URI::HTTPS] url
     #   A URL to accept or reject.
-    # 
+    #
     # @since 0.2.4
     #
     def visit_urls_like(pattern=nil,&block)
@@ -341,7 +341,7 @@ module Spidr
     # @yieldparam [String] ext
     #   A URI path extension to reject or accept.
     #
-    def ignore_exts_like(pattern=nil,&block)
+    def ignore_exts_like(pattern = nil, &block)
       if pattern
         ignore_exts << pattern
       elsif block

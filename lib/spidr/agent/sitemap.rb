@@ -35,7 +35,7 @@ module Spidr
       return parse_sitemap(url: URI.join(base_url, @sitemap).to_s) if @sitemap.is_a?(String)
 
       if @sitemap == :robots
-        urls = robots.other_values(base_url)['Sitemap']
+        urls = robots.other_values(base_url).transform_keys(:downcase)['sitemap']
         return urls.flat_map { |u| parse_sitemap(url: u) } if urls && urls.any?
       end
 

@@ -849,6 +849,7 @@ module Spidr
       visit_host?(url.host) &&
       visit_link?(url.to_s) &&
       visit_url?(url) &&
+      visit_ext?(url.path) &&
       robot_allowed?(url.to_s)
     end
 

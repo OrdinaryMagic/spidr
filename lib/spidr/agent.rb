@@ -696,7 +696,7 @@ module Spidr
       rescue Actions::Action
       end
 
-      urls = page.urls.map { |u| sanitize_url(u) }.uniq(&:to_s).filter { |u| valid?(u) }
+      urls = page.urls.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }
       enqueue(urls)
     end
 
@@ -847,10 +847,8 @@ module Spidr
     def valid?(url)
       visit_scheme?(url.scheme) &&
       visit_host?(url.host) &&
-      visit_port?(url.port) &&
       visit_link?(url.to_s) &&
       visit_url?(url) &&
-      visit_ext?(url.path) &&
       robot_allowed?(url.to_s)
     end
 

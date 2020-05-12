@@ -15,6 +15,8 @@ module Spidr
     # Headers returned with the body
     attr_reader :headers
 
+    attr_reader :sitemap
+
     #
     # Creates a new Page object.
     #
@@ -24,9 +26,10 @@ module Spidr
     # @param [Net::HTTPResponse] response
     #   The response from the request for the page.
     #
-    def initialize(url, curl)
+    def initialize(url, curl, sitemap = false)
       @url = url
       @curl = curl
+      @sitemap = sitemap
       @headers = populate_headers(curl)
       @doc = nil
     end
@@ -58,7 +61,7 @@ module Spidr
       unless body.empty?
         doc_class = if html?
                       Nokogiri::HTML::Document
-                    elsif rss? || atom? || xml? || xsl?
+                    elsif sitemap || rss? || atom? || xml? || xsl?
                       Nokogiri::XML::Document
                     end
 

@@ -588,15 +588,14 @@ module Spidr
     # @return [Page, nil]
     #   The page for the response, or `nil` if the request failed.
     #
-    def get_page(url, follow_redirect = false)
+    def get_page(url, sitemap = false)
       # url = URI(url)
-      curl = init_curl(url.to_s, follow_redirect)
+      curl = init_curl(url.to_s, sitemap)
       curl.perform
-      url = URI.parse(curl.last_effective_url) if follow_redirect
-      new_page = Page.new(url, curl)
+      url = URI.parse(curl.last_effective_url) if sitemap
+      new_page = Page.new(url, curl, sitemap)
       yield new_page if block_given?
       new_page
-
       # prepare_request(url) do |session, path, headers|
       #   response = follow_redirect ? process_url(session, path, headers, limit = 10) : session.get(path, headers)
       #   new_page = Page.new(url, response)
@@ -623,10 +622,11 @@ module Spidr
     #   end
     # end
     #
-    def init_curl(url, follow_location = false)
+    def init_curl(url, sitemap = false)
       Curl::Easy.new do |c|
         c.url = url
-        c.follow_location = follow_location
+        c.follow_location = sitemap
+        c.timeout = 40 if sitemap
         # c.proxy_url = proxy_url if proxy_url.present?
         c.headers['User-Agent'] = @user_agent if @user_agent
       end

@@ -348,7 +348,8 @@ module Spidr
     #   A page which has been visited.
     #
     def start_at(url, &block)
-      sitemap_urls(url).each { |u| enqueue(u) }
+      urls = sitemap_urls(url)
+      enqueue(urls.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }) unless urls.empty?
 
       enqueue(url)
       run(&block)
@@ -626,7 +627,7 @@ module Spidr
       Curl::Easy.new do |c|
         c.url = url
         c.follow_location = sitemap
-        c.timeout = 40 if sitemap
+        c.timeout = 30 if sitemap
         # c.proxy_url = proxy_url if proxy_url.present?
         c.headers['User-Agent'] = @user_agent if @user_agent
       end

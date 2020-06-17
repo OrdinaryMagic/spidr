@@ -626,6 +626,7 @@ module Spidr
     def init_curl(url, sitemap = false)
       Curl::Easy.new do |c|
         c.url = url
+        c.version = Curl::HTTP_1_1
         c.follow_location = sitemap
         c.timeout = 30 if sitemap
         # c.proxy_url = proxy_url if proxy_url.present?

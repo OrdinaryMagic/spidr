@@ -206,6 +206,7 @@ module Spidr
       @history  = Set[]
       @failures = Set[]
       @queue    = []
+      @skipped_queue = []
 
       @limit     = options[:limit]
       @levels    = Hash.new(0)

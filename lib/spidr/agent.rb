@@ -538,19 +538,6 @@ module Spidr
     end
 
     #
-    # Determines whether a given URL has been skipped.
-    #
-    # @param [URI::HTTP] url
-    #   The URL to search for in the skipped_queue.
-    #
-    # @return [Boolean]
-    #   Specifies whether the given URL has been skipped.
-    #
-    def skipped?(url)
-      @skipped_queue.include?(url)
-    end
-
-    #
     # Enqueues a given URL to skipped queue.
     #
     # @param [URI::HTTP, String] url
@@ -744,7 +731,6 @@ module Spidr
       rescue Actions::Paused => action
         raise(action)
       rescue Actions::SkipPage
-        dequeue_history
         enqueue_skipped(page.url)
         return nil
       rescue Actions::Action
@@ -859,16 +845,6 @@ module Spidr
     end
 
     #
-    # Dequeues URL that was last added to history queue.
-    #
-    # @return [URI::HTTP]
-    #   The URL that was last added to history queue.
-    #
-    def dequeue_history
-      @history.pop
-    end
-
-    #
     # Dequeues a URL that will later be visited.
     #
     # @return [URI::HTTP]
@@ -886,7 +862,8 @@ module Spidr
     # @since 0.6.0
     #
     def limit_reached?
-      @limit && @history.length >= @limit
+      actual_links_count = @history.length - @skipped_queue.length
+      @limit && actual_links_count >= @limit
     end
 
     def limit_balance

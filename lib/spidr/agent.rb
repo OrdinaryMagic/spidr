@@ -580,7 +580,7 @@ module Spidr
       end
 
       url = sanitize_url(item)
-      if !queued?(url) && visit?(url) && !skipped?(url)
+      if !queued?(url) && visit?(url)
         link = url.to_s
 
         begin

@@ -69,6 +69,11 @@ module Spidr
     # @return [Array<URI::HTTP>]
     attr_reader :queue
 
+    # Queue of skipped URLs
+    #
+    # @return [Array<URI::HTTP>]
+    attr_reader :skipped_queue
+
     # The session cache
     #
     # @return [SessionCache]
@@ -210,6 +215,7 @@ module Spidr
 
       self.queue = options[:queue] if options[:queue]
       self.history = options[:history] if options[:history]
+      self.skipped_queue = options[:skipped_queue] if options[:skipped_queue]
 
       initialize_sanitizers(options)
       initialize_filters(options)
@@ -514,6 +520,50 @@ module Spidr
     end
 
     #
+    # Sets the queue of skipped URLs.
+    #
+    # @param [#each] new_queue
+    #   The new list of skipped URLs.
+    #
+    # @return [Array<URI::HTTP>]
+    #   The list of skipped URLs.
+    #
+    # @example
+    #   agent.skipped_queue = ['http://www.vimeo.com/', 'http://www.reddit.com/']
+    #
+    def skipped_queue=(new_queue)
+      @skipped_queue.clear
+      new_queue.each { |url| @skipped_queue << URI(url) }
+      @skipped_queue
+    end
+
+    #
+    # Determines whether a given URL has been skipped.
+    #
+    # @param [URI::HTTP] url
+    #   The URL to search for in the skipped_queue.
+    #
+    # @return [Boolean]
+    #   Specifies whether the given URL has been skipped.
+    #
+    def skipped?(url)
+      @skipped_queue.include?(url)
+    end
+
+    #
+    # Enqueues a given URL to skipped queue.
+    #
+    # @param [URI::HTTP, String] url
+    #   The URL to enqueue for visiting.
+    #
+    # @return [Boolean]
+    #   Specifies whether the URL was enqueued, or ignored.
+    #
+    def enqueue_skipped(url)
+      @skipped_queue << URI(url)
+    end
+
+    #
     # Determines whether a given URL has been enqueued.
     #
     # @param [URI::HTTP] url
@@ -543,7 +593,7 @@ module Spidr
       end
 
       url = sanitize_url(item)
-      if !queued?(url) && visit?(url)
+      if !queued?(url) && visit?(url) && !skipped?(url)
         link = url.to_s
 
         begin
@@ -694,6 +744,8 @@ module Spidr
       rescue Actions::Paused => action
         raise(action)
       rescue Actions::SkipPage
+        dequeue_history
+        enqueue_skipped(page.url)
         return nil
       rescue Actions::Action
       end
@@ -710,7 +762,7 @@ module Spidr
     #   the `queue` of the agent.
     #
     def to_hash
-      { history: @history, queue: @queue }
+      { history: @history, queue: @queue, skipped_queue: @skipped_queue }
     end
 
     protected
@@ -804,6 +856,16 @@ module Spidr
         failed(url)
         return nil
       end
+    end
+
+    #
+    # Dequeues URL that was last added to history queue.
+    #
+    # @return [URI::HTTP]
+    #   The URL that was last added to history queue.
+    #
+    def dequeue_history
+      @history.pop
     end
 
     #

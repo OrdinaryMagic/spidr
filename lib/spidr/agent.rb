@@ -337,6 +337,7 @@ module Spidr
     def clear
       @queue.clear
       @history.clear
+      @skipped_queue.clear
       @failures.clear
       return self
     end

@@ -206,7 +206,7 @@ module Spidr
       @history  = Set[]
       @failures = Set[]
       @queue    = []
-      @skipped_queue = []
+      @skipped_queue = Set[]
 
       @limit     = options[:limit]
       @levels    = Hash.new(0)
@@ -357,8 +357,7 @@ module Spidr
     #
     def start_at(url, &block)
       urls = sitemap_urls(url)
-      enqueue(urls.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }) unless urls.empty?
-
+      enqueue(urls)
       enqueue(url)
       run(&block)
     end
@@ -377,26 +376,29 @@ module Spidr
       @running = true
 
       until @queue.empty? || paused? || limit_reached?
-        pool = ::Concurrent::FixedThreadPool.new(@pool_size)
-        @queue = @queue.shift(limit_balance) if limit_balance && limit_balance < @queue.length
-        pages = []
-        @queue.each do |url|
-          pool.post do
-            page = get_page(url)
-            @mutex.synchronize { pages << page }
-          end
-        end
-        pool.shutdown
-        pool.wait_for_termination
-        pages.each do |p|
-          @queue = @queue.delete_if { |url| url.to_s == p.url.to_s }
-          visit_page(p, &block)
-        end
+        limited_queue = @queue.shift(limit_balance || @queue.length)
+        queue_processing(limited_queue, &block)
       end
 
       @running = false
       @sessions.clear
       self
+    end
+
+    def queue_processing(limited_queue, &block)
+      pages = []
+      pool = ::Concurrent::FixedThreadPool.new(@pool_size)
+      limited_queue.each do |url|
+        pool.post do
+          page = get_page(url)
+          @mutex.synchronize { pages << page }
+        end
+      end
+      pool.shutdown
+      pool.wait_for_termination
+      pages.each do |p|
+        visit_page(p, &block)
+      end
     end
 
     #
@@ -553,6 +555,19 @@ module Spidr
     end
 
     #
+    # Determines whether a given URL has skipped.
+    #
+    # @param [URI::HTTP] url
+    #   The URL to search for in the queue.
+    #
+    # @return [Boolean]
+    #   Specifies whether the given URL has been skipped.
+    #
+    def skipped?(url)
+      @skipped_queue.include?(url)
+    end
+
+    #
     # Determines whether a given URL has been enqueued.
     #
     # @param [URI::HTTP] url
@@ -577,6 +592,9 @@ module Spidr
     #
     def enqueue(item, level = 0)
       if item.is_a?(Array)
+        return false if item.blank?
+
+        item = item.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }
         @queue |= (item - @history.to_a)
         return true
       end
@@ -738,8 +756,7 @@ module Spidr
       rescue Actions::Action
       end
 
-      urls = page.urls.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }
-      enqueue(urls)
+      enqueue(page.urls)
     end
 
     #
@@ -871,7 +888,7 @@ module Spidr
     def limit_balance
       return unless @limit
 
-      @limit - @history.length
+      @limit - (@history.length - @skipped_queue.length)
     end
 
     #

@@ -396,9 +396,12 @@ module Spidr
       end
       pool.shutdown
       pool.wait_for_termination
+      finded_urls = Set[]
       pages.each do |p|
-        visit_page(p, &block)
+        urls = visit_page(p, &block)
+        urls.each { |u| finded_urls << u } if urls.present?
       end
+      enqueue(finded_urls.to_a)
     end
 
     #
@@ -519,7 +522,7 @@ module Spidr
     #
     def queue=(new_queue)
       @queue.clear
-      new_queue.each { |url| @queue << URI(url) }
+      new_queue.each { |url| enqueue(url) }
       @queue
     end
 
@@ -594,8 +597,7 @@ module Spidr
       if item.is_a?(Array)
         return false if item.blank?
 
-        item = item.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }
-        @queue |= (item - @history.to_a)
+        item.uniq.each { |u| enqueue(u) }
         return true
       end
 
@@ -756,7 +758,7 @@ module Spidr
       rescue Actions::Action
       end
 
-      enqueue(page.urls)
+      page.urls
     end
 
     #

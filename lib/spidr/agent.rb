@@ -597,7 +597,8 @@ module Spidr
       if item.is_a?(Array)
         return false if item.blank?
 
-        item.uniq.each { |u| enqueue(u) }
+        item = item.map { |u| sanitize_url(u) }.filter { |u| valid?(u) }
+        @queue |= (item - @history.to_a)
         return true
       end
 

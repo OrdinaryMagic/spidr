@@ -689,6 +689,7 @@ module Spidr
         c.version = Curl::HTTP_1_1
         c.follow_location = sitemap
         c.timeout = 30 if sitemap
+        c.verify_mode = OpenSSL::SSL::VERIFY_NONE
         # c.proxy_url = proxy_url if proxy_url.present?
         c.headers['User-Agent'] = @user_agent if @user_agent
       end

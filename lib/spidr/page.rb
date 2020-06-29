@@ -46,6 +46,10 @@ module Spidr
 
     alias to_s body
 
+    def close
+      curl.close
+    end
+
     #
     # Returns a parsed document object for HTML, XML, RSS and Atom pages.
     #

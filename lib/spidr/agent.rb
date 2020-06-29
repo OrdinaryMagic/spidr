@@ -103,6 +103,8 @@ module Spidr
 
     attr_reader :pool_size
 
+    attr_reader :batch_size
+
     #
     # Creates a new Agent object.
     #
@@ -213,6 +215,7 @@ module Spidr
       @max_depth = options[:max_depth]
       @mutex = Mutex.new
       @pool_size = options.fetch(:pool_size, 8)
+      @batch_size = options.fetch(:pool_size, 200)
 
       self.queue = options[:queue] if options[:queue]
       self.history = options[:history] if options[:history]
@@ -376,7 +379,7 @@ module Spidr
       @running = true
 
       until @queue.empty? || paused? || limit_reached?
-        limited_queue = @queue.shift(limit_balance || @queue.length)
+        limited_queue = @queue.shift(limit_balance)
         queue_processing(limited_queue, &block)
       end
 
@@ -892,9 +895,10 @@ module Spidr
     end
 
     def limit_balance
-      return unless @limit
+      return batch_size unless @limit
 
-      @limit - (@history.length - @skipped_queue.length)
+      result = @limit - (@history.length - @skipped_queue.length)
+      result < batch_size ? result : batch_size
     end
 
     #

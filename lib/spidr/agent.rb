@@ -215,7 +215,7 @@ module Spidr
       @max_depth = options[:max_depth]
       @mutex = Mutex.new
       @pool_size = options.fetch(:pool_size, 8)
-      @batch_size = options.fetch(:pool_size, 200)
+      @batch_size = options.fetch(:batch_size, 100)
 
       self.queue = options[:queue] if options[:queue]
       self.history = options[:history] if options[:history]

@@ -654,6 +654,8 @@ module Spidr
       new_page = Page.new(url, curl, sitemap)
       yield new_page if block_given?
       new_page
+    ensure
+      curl.close
       # prepare_request(url) do |session, path, headers|
       #   response = follow_redirect ? process_url(session, path, headers, limit = 10) : session.get(path, headers)
       #   new_page = Page.new(url, response)

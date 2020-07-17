@@ -29,7 +29,7 @@ module Spidr
     # @see https://www.sitemaps.org/protocol.html
     def sitemap_urls(url)
       return [] unless @sitemap
-      return urls.flat_map { |u| parse_sitemap(url: URI.join(to_base_url(u), u).to_s) } if @sitemap.is_a?(Array)
+      return @sitemap.flat_map { |u| parse_sitemap(url: URI.join(to_base_url(u), u).to_s) } if @sitemap.is_a?(Array)
 
       base_url = to_base_url(url)
       return parse_sitemap(url: URI.join(base_url, @sitemap).to_s) if @sitemap.is_a?(String)

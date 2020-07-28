@@ -8,12 +8,13 @@ module Spidr
     #
     # Initializes the robots filter.
     #
-    def initialize_robots
+    def initialize_robots(options)
       unless Object.const_defined?(:Robots)
-        raise(ArgumentError,":robots option given but unable to require 'robots' gem")
+        raise(ArgumentError, ":robots option given but unable to require 'robots' gem")
       end
 
-      @robots = Robots.new(@user_agent)
+      custom_robots_txt = options[:use_custom_robots] ? options[:custom_robots_txt] : nil
+      @robots = Robots.new(@user_agent, custom_robots_txt)
     end
 
     #

@@ -8,3 +8,4 @@ Gemfile.lock
 .yardoc
 *.swp
 *~
+/.idea/*

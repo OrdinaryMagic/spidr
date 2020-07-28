@@ -226,7 +226,7 @@ module Spidr
       initialize_actions(options)
       initialize_events(options)
 
-      initialize_robots if options.fetch(:robots, Spidr.robots?)
+      initialize_robots(options) if options.fetch(:robots, Spidr.robots?)
       initialize_sitemap(options)
 
       yield self if block_given?

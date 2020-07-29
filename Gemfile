@@ -9,7 +9,7 @@ gemspec
 gem 'concurrent-ruby', require: 'concurrent'
 gem 'curb'
 gem 'http_parser.rb', '~> 0.6.0'
-gem 'robots', group: :robots, git: 'https://github.com/temadoomsday/robots'
+gem 'robots', '~> 0.10.1', git: 'https://github.com/temadoomsday/robots'
 
 group :development do
   gem 'rake'

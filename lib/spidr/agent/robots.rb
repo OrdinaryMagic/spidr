@@ -1,7 +1,4 @@
-begin
-  require 'robots'
-rescue LoadError
-end
+require 'robots'
 
 module Spidr
   class Agent

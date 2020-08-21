@@ -7,6 +7,8 @@ module Spidr
     #   The Content-Type of the page.
     #
     def content_type
+      return '' unless @headers
+
       @headers['Content-Type'] || ''
     end
 
@@ -18,8 +20,10 @@ module Spidr
     #
     # @since 0.2.2
     #
+    #TODO: rewrite
     def content_types
-      #TODO: rewrite
+      return [] unless @headers
+
       [@headers['Content-Type']].reject(&:blank?) || []
     end
 

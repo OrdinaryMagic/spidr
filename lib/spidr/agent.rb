@@ -213,6 +213,7 @@ module Spidr
       @limit     = options[:limit]
       @levels    = Hash.new(0)
       @max_depth = options[:max_depth]
+      @basic_auth = options[:basic_auth]
       @mutex = Mutex.new
       @pool_size = options.fetch(:pool_size, 8)
       @batch_size = options.fetch(:batch_size, 100)
@@ -655,6 +656,12 @@ module Spidr
     def get_page(url, sitemap = false)
       # url = URI(url)
       curl = init_curl(url.to_s, sitemap)
+      if @basic_auth.present?
+        curl.http_auth_types = :basic
+        auth = @basic_auth.split(':')
+        curl.username = auth[0]
+        curl.password = auth[1]
+      end
       curl.perform
       url = URI.parse(curl.last_effective_url) if sitemap
       new_page = Page.new(url, curl, sitemap)
